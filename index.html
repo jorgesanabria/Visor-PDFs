@@ -1,0 +1,44 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Visor PDF</title>
+    <style>
+      html, body, canvas { margin: 0; padding: 0; height: 100%; width: 100%; }
+    </style>
+  </head>
+  <body>
+    <canvas id="pdf-canvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const pdfUrl = urlParams.get('url');
+
+      if (!pdfUrl) {
+        document.body.innerHTML = "<p>No PDF specified</p>";
+      } else {
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+        loadingTask.promise.then(pdf => {
+          pdf.getPage(1).then(page => {
+            const scale = 1.5;
+            const viewport = page.getViewport({ scale });
+
+            const canvas = document.getElementById('pdf-canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+              canvasContext: context,
+              viewport: viewport
+            };
+            page.render(renderContext);
+          });
+        }).catch(error => {
+          document.body.innerHTML = `<p>Error: ${error.message}</p>`;
+        });
+      }
+    </script>
+  </body>
+</html>
